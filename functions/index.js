@@ -3,8 +3,6 @@ export async function onRequest(context) {
   const totalImages = 51; // 假设你有 5 张，请根据实际数量修改
   
   // 2. 【配置】图片路径
-  // 如果图片在 imgs 文件夹下，保持 "/imgs/"
-  // 如果图片直接在仓库根目录，改成 ""
   const path = "/imgs/"; 
 
   // 3. 生成随机数
