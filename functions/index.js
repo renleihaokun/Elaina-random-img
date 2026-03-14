@@ -1,6 +1,6 @@
 export async function onRequest(context) {
   // 1. 【配置】你上传了多少张图片？
-  const totalImages = 51; // 假设你有 5 张，请根据实际数量修改
+  const totalImages = 57; // 假设你有 5 张，请根据实际数量修改
   
   // 2. 【配置】图片路径
   const path = "/imgs/"; 
