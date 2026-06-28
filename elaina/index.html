@@ -1,0 +1,1159 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>伊雷娜随机图</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* ===== Design Tokens ===== */
+    :root {
+      --bg: #0b0b14;
+      --bg-surface: rgba(180, 160, 220, 0.04);
+      --glass: rgba(180, 160, 220, 0.06);
+      --glass-border: rgba(180, 160, 220, 0.1);
+      --glass-border-hover: rgba(196, 181, 253, 0.22);
+      --accent: #c4b5fd;
+      --accent-deep: #8b5cf6;
+      --accent-glow: rgba(139, 92, 246, 0.2);
+      --accent-glow-strong: rgba(139, 92, 246, 0.35);
+      --silver: #c0c0d0;
+      --text: #eee8ff;
+      --text-dim: rgba(192, 192, 208, 0.65);
+      --radius: 16px;
+      --radius-sm: 12px;
+      --ease-out: cubic-bezier(0.4, 0, 0.2, 1);
+      --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+
+    /* ===== Header ===== */
+    .header {
+      position: relative;
+      text-align: center;
+      padding: 80px 24px 60px;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      inset: -50%;
+      background:
+        radial-gradient(ellipse 600px 400px at 30% 20%, rgba(139, 92, 246, 0.18), transparent 70%),
+        radial-gradient(ellipse 500px 350px at 70% 30%, rgba(196, 181, 253, 0.12), transparent 70%),
+        radial-gradient(ellipse 400px 300px at 50% 60%, rgba(109, 40, 217, 0.1), transparent 70%);
+      animation: headerGlow 12s ease-in-out infinite alternate;
+      pointer-events: none;
+    }
+
+    @keyframes headerGlow {
+      0%   { transform: translate(0, 0) rotate(0deg); }
+      50%  { transform: translate(3%, -2%) rotate(1deg); }
+      100% { transform: translate(-2%, 1%) rotate(-1deg); }
+    }
+
+    .header-stars {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      overflow: hidden;
+    }
+
+    .star {
+      position: absolute;
+      font-size: 0.7rem;
+      color: var(--accent);
+      opacity: 0;
+      animation: starFloat 6s ease-in-out infinite;
+    }
+
+    .star:nth-child(1) { left: 10%; top: 20%; animation-delay: 0s; animation-duration: 7s; }
+    .star:nth-child(2) { left: 85%; top: 15%; animation-delay: 1.2s; animation-duration: 5s; }
+    .star:nth-child(3) { left: 20%; top: 70%; animation-delay: 2.5s; animation-duration: 8s; }
+    .star:nth-child(4) { left: 75%; top: 60%; animation-delay: 0.8s; animation-duration: 6s; }
+    .star:nth-child(5) { left: 50%; top: 10%; animation-delay: 3s; animation-duration: 7.5s; }
+
+    @keyframes starFloat {
+      0%, 100% { opacity: 0; transform: translateY(0) scale(0.6); }
+      20%      { opacity: 0.7; }
+      50%      { opacity: 1; transform: translateY(-12px) scale(1); }
+      80%      { opacity: 0.7; }
+    }
+
+    .header-content {
+      position: relative;
+      z-index: 1;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 18px;
+      background: var(--glass);
+      border: 1px solid var(--glass-border);
+      border-radius: 100px;
+      font-size: 0.8rem;
+      color: var(--accent);
+      margin-bottom: 24px;
+      letter-spacing: 0.5px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.08);
+    }
+
+    .header h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      margin-bottom: 14px;
+      background: linear-gradient(135deg, #f0eaff 0%, var(--accent) 50%, var(--accent-deep) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      filter: drop-shadow(0 0 30px rgba(196, 181, 253, 0.15));
+    }
+
+    .header p {
+      font-size: 1.05rem;
+      color: var(--text-dim);
+      margin-bottom: 36px;
+      max-width: 480px;
+      margin-left: auto;
+      margin-right: auto;
+      line-height: 1.7;
+    }
+
+    .btn-group {
+      display: flex;
+      justify-content: center;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 13px 30px;
+      border: none;
+      border-radius: 100px;
+      font-size: 0.95rem;
+      font-family: inherit;
+      cursor: pointer;
+      text-decoration: none;
+      font-weight: 500;
+      transition: all 0.3s var(--ease-out);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      border-radius: inherit;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-deep), #a78bfa);
+      color: white;
+      box-shadow: 0 4px 24px var(--accent-glow), inset 0 1px 0 rgba(255,255,255,0.1);
+    }
+
+    .btn-primary::before {
+      background: linear-gradient(135deg, #9b7ffa, #b49cfa);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 36px var(--accent-glow-strong), inset 0 1px 0 rgba(255,255,255,0.15);
+    }
+
+    .btn-primary:hover::before { opacity: 1; }
+
+    .btn-primary:active {
+      transform: translateY(0) scale(0.97);
+      box-shadow: 0 2px 12px var(--accent-glow);
+    }
+
+    .btn-ghost {
+      background: var(--glass);
+      color: var(--silver);
+      border: 1px solid var(--glass-border);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(180, 160, 220, 0.1);
+      color: var(--text);
+      border-color: var(--glass-border-hover);
+      transform: translateY(-3px);
+      box-shadow: 0 8px 28px rgba(139, 92, 246, 0.1);
+    }
+
+    .btn-ghost:active {
+      transform: translateY(0) scale(0.97);
+    }
+
+    /* ===== Section Divider ===== */
+    .section-divider {
+      max-width: 1320px;
+      margin: 0 auto 32px;
+      padding: 0 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .section-divider::before,
+    .section-divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--glass-border), transparent);
+    }
+
+    .section-divider span {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      white-space: nowrap;
+      letter-spacing: 1px;
+    }
+
+    /* ===== Gallery ===== */
+    .gallery {
+      max-width: 1320px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+    }
+
+    /* ---- Card Cell (grid cell — size never changes) ---- */
+    .card-cell {
+      position: relative;
+      perspective: 900px;
+      cursor: pointer;
+      /* Padding ensures scaled cards don't clip neighbors */
+      padding: 8px;
+    }
+
+    /* ---- Ambient Image Glow (samples bottom of the image) ---- */
+    .image-glow {
+      position: absolute;
+      bottom: -15px;
+      left: 10%;
+      width: 80%;
+      height: 35%;
+      background-size: cover;
+      background-position: bottom;
+      filter: blur(20px);
+      opacity: 0.55;
+      z-index: -1;
+      pointer-events: none;
+      transition: transform 0.4s var(--ease-out), opacity 0.4s ease;
+    }
+
+    .card-cell:hover .image-glow {
+      transform: scale(1.1);
+      opacity: 0.8;
+    }
+
+    /* ---- Main Gallery Card ---- */
+    .gallery-item {
+      position: relative;
+      z-index: 1;
+      border-radius: var(--radius);
+      overflow: visible;
+      background: var(--bg-surface);
+      border: 1px solid var(--glass-border);
+      /* Smooth transition for random-size + 3D tilt + hover effects */
+      transition: transform 0.5s var(--ease-out),
+                  box-shadow 0.5s var(--ease-out),
+                  border-color 0.4s ease;
+      /* Skeleton shimmer placeholder */
+      background-image: linear-gradient(
+        110deg,
+        rgba(180, 160, 220, 0.03) 0%,
+        rgba(180, 160, 220, 0.08) 40%,
+        rgba(180, 160, 220, 0.03) 60%
+      );
+      background-size: 300% 100%;
+      animation: shimmer 2s ease-in-out infinite;
+      /* 3D */
+      transform-style: preserve-3d;
+      will-change: transform;
+      /* Default random sizing (overwritten by JS) */
+      --card-scale: 1;
+      --card-rotate: 0deg;
+      transform: scale(var(--card-scale)) rotate(var(--card-rotate));
+    }
+
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -100% 0; }
+    }
+
+    .gallery-item.loaded {
+      animation: none;
+      background-image: none;
+      background: var(--bg-surface);
+    }
+
+    .gallery-item .img-wrap {
+      position: relative;
+      width: 100%;
+      overflow: hidden;
+      border-radius: var(--radius);
+    }
+
+    .gallery-item .img-wrap img {
+      width: 100%;
+      display: block;
+      opacity: 0;
+      transition: opacity 0.5s ease, transform 0.5s var(--ease-out);
+    }
+
+    .gallery-item.loaded .img-wrap img {
+      opacity: 1;
+    }
+
+    /* Hover overlay */
+    .gallery-item::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(
+        to top,
+        rgba(11, 11, 20, 0.55) 0%,
+        rgba(139, 92, 246, 0.04) 35%,
+        transparent 60%
+      );
+      opacity: 0;
+      transition: opacity 0.35s ease;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    .card-cell:hover .gallery-item::after {
+      opacity: 1;
+    }
+
+    /* ---- Magic Seal / Wax Stamp ---- */
+    .card-seal {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 36px;
+      height: 36px;
+      z-index: 3;
+      pointer-events: none;
+      opacity: 0;
+      transform: scale(0.6) rotate(-20deg);
+      transition: opacity 0.4s ease 0.1s, transform 0.4s var(--ease-spring) 0.1s;
+    }
+
+    .card-cell:hover .card-seal {
+      opacity: 1;
+      transform: scale(1) rotate(0deg);
+    }
+
+    .card-seal svg {
+      width: 100%;
+      height: 100%;
+      filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
+    }
+
+    /* ---- Staggered Random Fade-in ---- */
+    .card-cell.reveal {
+      opacity: 0;
+      transform: translateY(24px);
+    }
+
+    .card-cell.reveal.visible {
+      opacity: 1;
+      transform: translateY(0);
+      /* transition-delay is set by JS per card for random stagger */
+      transition: opacity 0.5s ease var(--fade-delay, 0s),
+                  transform 0.5s var(--ease-out) var(--fade-delay, 0s);
+    }
+
+    /* ===== Lightbox ===== */
+    .lightbox-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(7, 7, 14, 0.88);
+      backdrop-filter: blur(28px) saturate(1.2);
+      -webkit-backdrop-filter: blur(28px) saturate(1.2);
+      z-index: 1000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 24px;
+      visibility: hidden;
+      opacity: 0;
+      transition: visibility 0.4s, opacity 0.35s ease;
+    }
+
+    .lightbox-overlay.active {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .lightbox-content {
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .lightbox-content img {
+      max-width: 90vw;
+      max-height: 84vh;
+      border-radius: var(--radius);
+      box-shadow: 0 20px 80px rgba(0, 0, 0, 0.5),
+                  0 0 0 1px rgba(196, 181, 253, 0.06);
+      transition: opacity 0.3s ease, transform 0.3s var(--ease-out);
+    }
+
+    .lightbox-content img.entering {
+      animation: lbFadeIn 0.35s var(--ease-out) forwards;
+    }
+
+    .lightbox-content img.exiting {
+      animation: lbFadeOut 0.2s ease forwards;
+    }
+
+    @keyframes lbFadeIn {
+      from { opacity: 0; transform: scale(0.94); }
+      to   { opacity: 1; transform: scale(1); }
+    }
+
+    @keyframes lbFadeOut {
+      from { opacity: 1; transform: scale(1); }
+      to   { opacity: 0; transform: scale(0.97); }
+    }
+
+    .lightbox-spinner {
+      position: absolute;
+      width: 48px;
+      height: 48px;
+      border: 3px solid rgba(196, 181, 253, 0.15);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: none;
+    }
+
+    .lightbox-spinner.active {
+      display: block;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .lightbox-close {
+      position: fixed;
+      top: 20px;
+      right: 24px;
+      background: rgba(180, 160, 220, 0.08);
+      border: 1px solid rgba(180, 160, 220, 0.12);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: var(--silver);
+      font-size: 1.15rem;
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      cursor: pointer;
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.3s var(--ease-out);
+    }
+
+    .lightbox-close:hover {
+      background: rgba(180, 160, 220, 0.15);
+      color: var(--text);
+      transform: rotate(90deg);
+      border-color: var(--glass-border-hover);
+      box-shadow: 0 0 20px rgba(139, 92, 246, 0.1);
+    }
+
+    .lightbox-nav {
+      position: fixed;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(180, 160, 220, 0.06);
+      border: 1px solid rgba(180, 160, 220, 0.1);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: var(--silver);
+      font-size: 1.3rem;
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      cursor: pointer;
+      transition: all 0.3s var(--ease-out);
+      z-index: 1001;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      user-select: none;
+    }
+
+    .lightbox-nav:hover {
+      background: rgba(180, 160, 220, 0.14);
+      color: var(--text);
+      border-color: var(--glass-border-hover);
+      box-shadow: 0 0 24px rgba(139, 92, 246, 0.12);
+      transform: translateY(-50%) scale(1.08);
+    }
+
+    .lightbox-nav:active {
+      transform: translateY(-50%) scale(0.95);
+    }
+
+    .lightbox-prev { left: 20px; }
+    .lightbox-next { right: 20px; }
+
+    .lightbox-counter {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(180, 160, 220, 0.08);
+      border: 1px solid rgba(180, 160, 220, 0.1);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: var(--text-dim);
+      padding: 8px 22px;
+      border-radius: 100px;
+      font-size: 0.85rem;
+      z-index: 1001;
+      letter-spacing: 0.5px;
+    }
+
+    /* ===== Toast ===== */
+    .toast {
+      position: fixed;
+      top: 24px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(180, 160, 220, 0.1);
+      border: 1px solid rgba(220, 80, 80, 0.25);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      color: #f0a0a0;
+      padding: 12px 24px;
+      border-radius: 12px;
+      font-size: 0.9rem;
+      z-index: 2000;
+      opacity: 0;
+      transition: all 0.35s var(--ease-out);
+      pointer-events: none;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ===== Footer ===== */
+    .footer {
+      text-align: center;
+      padding: 36px 24px 44px;
+      border-top: 1px solid var(--glass-border);
+      background: linear-gradient(180deg, transparent, rgba(139, 92, 246, 0.02));
+    }
+
+    .footer p {
+      color: var(--text-dim);
+      font-size: 0.85rem;
+    }
+
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+      transition: color 0.2s ease, text-shadow 0.2s ease;
+    }
+
+    .footer a:hover {
+      color: var(--accent-deep);
+      text-shadow: 0 0 12px rgba(139, 92, 246, 0.3);
+    }
+
+    /* ===== Scroll Fade & Blur Masks ===== */
+    .scroll-fade {
+      position: fixed;
+      left: 0;
+      right: 0;
+      height: 50px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      pointer-events: none;
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .scroll-fade.visible {
+      opacity: 1;
+    }
+
+    .scroll-fade-top {
+      top: 0;
+      -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+      mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+    }
+
+    .scroll-fade-bottom {
+      bottom: 0;
+      -webkit-mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+      mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
+    }
+
+    /* ===== Responsive ===== */
+    @media (max-width: 1024px) {
+      .gallery {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+        gap: 18px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .gallery {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 0 12px 60px;
+      }
+      .card-cell { padding: 5px; }
+      .card-seal { width: 28px; height: 28px; top: 6px; right: 6px; }
+      .header { padding: 56px 20px 44px; }
+      .header h1 { font-size: 2rem; }
+      .header p { font-size: 0.95rem; }
+      .btn { padding: 11px 24px; font-size: 0.9rem; }
+      .lightbox-nav { width: 42px; height: 42px; font-size: 1.1rem; }
+      .lightbox-prev { left: 12px; }
+      .lightbox-next { right: 12px; }
+      .section-divider { margin-bottom: 24px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header-stars">
+      <span class="star">✦</span>
+      <span class="star">✦</span>
+      <span class="star">✦</span>
+      <span class="star">✦</span>
+      <span class="star">✦</span>
+    </div>
+    <div class="header-content">
+      <div class="badge">✦ 魔女の旅々</div>
+      <h1>伊雷娜随机图</h1>
+      <p>收集来自网络的美丽伊雷娜图片，每一张都是旅途中的风景</p>
+      <div class="btn-group">
+        <button class="btn btn-primary" id="random-btn">🎲 来一张随机伊雷娜</button>
+        <a class="btn btn-ghost" href="https://github.com/renleihaokun/Elaina-random-img/tree/main/imgs" target="_blank">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+          提交图片
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Section divider -->
+  <div class="section-divider"><span>GALLERY</span></div>
+
+  <!-- Scroll fade & blur masks -->
+  <div class="scroll-fade scroll-fade-top" id="scroll-fade-top"></div>
+  <div class="scroll-fade scroll-fade-bottom" id="scroll-fade-bottom"></div>
+
+  <!-- Gallery -->
+  <div class="gallery" id="gallery"></div>
+
+  <!-- Lightbox -->
+  <div class="lightbox-overlay" id="lightbox">
+    <button class="lightbox-close" id="lb-close">✕</button>
+    <button class="lightbox-nav lightbox-prev" id="lb-prev">‹</button>
+    <div class="lightbox-content">
+      <div class="lightbox-spinner" id="lb-spinner"></div>
+      <img id="lightbox-img" src="" alt="伊雷娜">
+    </div>
+    <button class="lightbox-nav lightbox-next" id="lb-next">›</button>
+    <div class="lightbox-counter" id="lightbox-counter"></div>
+  </div>
+
+  <!-- Toast -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <p>图片来源网络 · <a href="https://github.com/renleihaokun/Elaina-random-img" target="_blank">GitHub</a> · 欢迎提交 PR</p>
+  </footer>
+
+  <!-- Magic circle SVG (hidden template, cloned per card) -->
+  <svg id="seal-template" style="display:none" viewBox="0 0 100 100">
+    <defs>
+      <linearGradient id="sealGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#c4b5fd" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#8b5cf6" stop-opacity="0.7"/>
+      </linearGradient>
+    </defs>
+    <circle cx="50" cy="50" r="44" fill="none" stroke="url(#sealGrad)" stroke-width="2.5" opacity="0.8"/>
+    <circle cx="50" cy="50" r="34" fill="none" stroke="url(#sealGrad)" stroke-width="1.2" opacity="0.5"/>
+    <circle cx="50" cy="50" r="12" fill="none" stroke="url(#sealGrad)" stroke-width="1.5" opacity="0.7"/>
+    <polygon points="50,18 53,40 70,28 57,45 76,50 57,55 70,72 53,60 50,82 47,60 30,72 43,55 24,50 43,45 30,28 47,40" fill="none" stroke="url(#sealGrad)" stroke-width="1" opacity="0.4"/>
+    <line x1="50" y1="6" x2="50" y2="20" stroke="url(#sealGrad)" stroke-width="1" opacity="0.3"/>
+    <line x1="50" y1="80" x2="50" y2="94" stroke="url(#sealGrad)" stroke-width="1" opacity="0.3"/>
+    <line x1="6" y1="50" x2="20" y2="50" stroke="url(#sealGrad)" stroke-width="1" opacity="0.3"/>
+    <line x1="80" y1="50" x2="94" y2="50" stroke="url(#sealGrad)" stroke-width="1" opacity="0.3"/>
+  </svg>
+
+  <script>
+    /* ============================================================
+       Core logic — unchanged business rules, enhanced UI effects
+       ============================================================ */
+
+    const TOTAL_IMAGES = 57;
+
+    let currentIndex = 0;
+    let isRandomMode = false;
+    let isLightboxAnimating = false;
+    let lastObjectUrl = null;
+
+    /* ===== Utility: Seeded-ish random per card index ===== */
+    function cardRandomness(i, colPosition) {
+      // colPosition: 'edge' (first/last column) or 'middle'
+      // Deterministic per index so it's stable across reloads.
+      const seed = Math.sin(i * 9301 + 49297) * 0.5 + 0.5; // 0..1
+      const scale = 0.92 + seed * 0.14;        // 0.92 ~ 1.06
+      // Edge columns: ±0.5°  |  Middle columns: ±1.5°
+      const maxRotate = colPosition === 'edge' ? 0.5 : 1.5;
+      const rotate = (seed - 0.5) * maxRotate * 2;
+      return { scale, rotate };
+    }
+
+    /* ===== Gallery Construction ===== */
+    const gallery = document.getElementById('gallery');
+    const sealTemplate = document.getElementById('seal-template');
+    const fragment = document.createDocumentFragment();
+
+    // Fisher-Yates shuffle: randomize card order on every page load
+    const imageOrder = Array.from({ length: TOTAL_IMAGES }, (_, i) => i + 1);
+    for (let j = imageOrder.length - 1; j > 0; j--) {
+      const k = Math.floor(Math.random() * (j + 1));
+      [imageOrder[j], imageOrder[k]] = [imageOrder[k], imageOrder[j]];
+    }
+    gallery.dataset.order = imageOrder.join(',');
+
+    for (let idx = 0; idx < imageOrder.length; idx++) {
+      const i = imageOrder[idx]; // shuffled image number (1-based)
+      const imgSrc = `/imgs/${i}.webp`;
+
+      // Grid cell — fixed size, never scales
+      const cell = document.createElement('div');
+      cell.className = 'card-cell reveal';
+
+      // Random stagger delay: 0~500ms, set BEFORE any class changes
+      const stagger = Math.random() * 0.5;
+      cell.style.setProperty('--fade-delay', `${stagger.toFixed(2)}s`);
+
+      // Main card
+      const item = document.createElement('div');
+      item.className = 'gallery-item';
+
+      // Apply random scale + rotation (default to 'middle', refined after layout)
+      const { scale, rotate } = cardRandomness(i, 'middle');
+      item.dataset.scale = scale;
+      item.dataset.rotate = rotate;
+      item.style.setProperty('--card-scale', scale);
+      item.style.setProperty('--card-rotate', rotate + 'deg');
+      item.style.transform = `scale(${scale}) rotate(${rotate}deg)`;
+
+      const imgWrap = document.createElement('div');
+      imgWrap.className = 'img-wrap';
+
+      const img = document.createElement('img');
+      img.alt = `伊雷娜 #${i}`;
+      img.decoding = 'async';
+
+      // Ambient image glow: same image as background, blurred, positioned at bottom
+      const glow = document.createElement('div');
+      glow.className = 'image-glow';
+      glow.style.backgroundImage = `url(${imgSrc})`;
+
+      // Reveal image: force reflow to ensure opacity:0 is committed first
+      function revealImage() {
+        void item.offsetHeight; // force reflow
+        item.classList.add('loaded');
+      }
+
+      // Attach listener BEFORE setting src (handles network images)
+      let loaded = false;
+      img.addEventListener('load', function onLoad() {
+        if (loaded) return;
+        loaded = true;
+        img.removeEventListener('load', onLoad);
+        revealImage();
+      });
+
+      // Set src — triggers load (cached: sync, network: async)
+      img.src = imgSrc;
+
+      // Cached fast path: if already complete, onload may have fired sync
+      // or may not fire at all. Handle both cases.
+      if (img.complete && !loaded) {
+        loaded = true;
+        requestAnimationFrame(revealImage);
+      }
+
+      imgWrap.appendChild(img);
+      item.appendChild(imgWrap);
+
+      // Magic seal stamp
+      const seal = document.createElement('div');
+      seal.className = 'card-seal';
+      const sealSvg = sealTemplate.cloneNode(true);
+      sealSvg.removeAttribute('id');
+      sealSvg.style.display = '';
+      seal.appendChild(sealSvg);
+
+      // Assemble
+      item.appendChild(glow);
+      item.appendChild(seal);
+      cell.appendChild(item);
+
+      // 3D tilt on mouse move — combines with the random base scale/rotate
+      cell.addEventListener('mousemove', (e) => {
+        const rect = cell.getBoundingClientRect();
+        const x = (e.clientX - rect.left) / rect.width;   // 0..1
+        const y = (e.clientY - rect.top) / rect.height;    // 0..1
+        const tiltY = (x - 0.5) * 12;   // -6..+6 deg
+        const tiltX = (0.5 - y) * 10;   // -5..+5 deg
+        const s = parseFloat(item.dataset.scale);
+        const r = parseFloat(item.dataset.rotate);
+        item.style.transform = `rotateX(${tiltX}deg) rotateY(${tiltY}deg) scale(${s * 1.03}) rotate(${r}deg)`;
+        item.style.boxShadow = `${-tiltY * 1.5}px ${tiltX * 1.5}px 40px rgba(139, 92, 246, 0.12),
+                                 0 8px 24px rgba(0, 0, 0, 0.3)`;
+        item.style.borderColor = 'var(--glass-border-hover)';
+      });
+
+      cell.addEventListener('mouseleave', () => {
+        const s = parseFloat(item.dataset.scale);
+        const r = parseFloat(item.dataset.rotate);
+        item.style.transform = `scale(${s}) rotate(${r}deg)`;
+        item.style.boxShadow = '';
+        item.style.borderColor = '';
+      });
+
+      cell.addEventListener('click', () => openLightbox(i - 1));
+
+      fragment.appendChild(cell);
+    }
+
+    gallery.appendChild(fragment);
+
+    /* ===== Edge Tilt Tuning: detect columns and refine rotation ===== */
+    function applyEdgeTilt() {
+      const cells = gallery.querySelectorAll('.card-cell');
+      if (cells.length === 0) return;
+
+      // Detect column count by comparing first-row card top positions
+      const firstTop = cells[0].getBoundingClientRect().top;
+      let colCount = 0;
+      for (let c = 0; c < cells.length; c++) {
+        if (Math.abs(cells[c].getBoundingClientRect().top - firstTop) < 2) {
+          colCount++;
+        } else {
+          break;
+        }
+      }
+      if (colCount < 2) colCount = 2; // safety
+
+      // Read shuffled order from data attribute
+      const order = (gallery.dataset.order || '').split(',').map(Number);
+
+      for (let c = 0; c < cells.length; c++) {
+        const col = c % colCount;
+        const isEdge = (col === 0 || col === colCount - 1);
+        const item = cells[c].querySelector('.gallery-item');
+        const imgNum = order[c] || (c + 1); // shuffled image number
+        const { scale, rotate } = cardRandomness(imgNum, isEdge ? 'edge' : 'middle');
+        item.dataset.scale = scale;
+        item.dataset.rotate = rotate;
+        item.style.setProperty('--card-scale', scale);
+        item.style.setProperty('--card-rotate', rotate + 'deg');
+        item.style.transform = `scale(${scale}) rotate(${rotate}deg)`;
+      }
+    }
+
+    // Run after layout settles, and on resize
+    requestAnimationFrame(() => requestAnimationFrame(applyEdgeTilt));
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(applyEdgeTilt, 200);
+    });
+
+    /* ===== Scroll Reveal (IntersectionObserver) ===== */
+    const revealObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          const el = entry.target;
+          // Force reflow so the browser commits opacity:0 before transitioning
+          void el.offsetHeight;
+          el.classList.add('visible');
+          revealObserver.unobserve(el);
+        }
+      });
+    }, {
+      threshold: 0.06,
+      rootMargin: '0px 0px -40px 0px'
+    });
+
+    gallery.querySelectorAll('.card-cell.reveal').forEach((item) => {
+      revealObserver.observe(item);
+    });
+
+    /* ===== Header Stagger Entrance ===== */
+    (function animateHeaderEntrance() {
+      const els = [
+        document.querySelector('.badge'),
+        document.querySelector('.header h1'),
+        document.querySelector('.header p'),
+        document.querySelector('.btn-group')
+      ];
+      els.forEach((el, i) => {
+        if (!el) return;
+        el.style.opacity = '0';
+        el.style.transform = 'translateY(20px)';
+        el.style.transition = `opacity 0.6s ease ${i * 120}ms, transform 0.6s cubic-bezier(0.4, 0, 0.2, 1) ${i * 120}ms`;
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            el.style.opacity = '1';
+            el.style.transform = 'translateY(0)';
+          });
+        });
+      });
+    })();
+
+    /* ===== Toast ===== */
+    const toastEl = document.getElementById('toast');
+    let toastTimer = null;
+
+    function showToast(msg) {
+      toastEl.textContent = msg;
+      toastEl.classList.add('show');
+      clearTimeout(toastTimer);
+      toastTimer = setTimeout(() => toastEl.classList.remove('show'), 3000);
+    }
+
+    /* ===== Scroll Fade & Blur Masks ===== */
+    const scrollFadeTop = document.getElementById('scroll-fade-top');
+    const scrollFadeBottom = document.getElementById('scroll-fade-bottom');
+
+    function updateScrollFade() {
+      const scrollY = window.scrollY;
+      const viewH = window.innerHeight;
+      const docH = document.documentElement.scrollHeight;
+
+      // Top: show when scrolled past the header (> 200px)
+      if (scrollY > 200) {
+        scrollFadeTop.classList.add('visible');
+      } else {
+        scrollFadeTop.classList.remove('visible');
+      }
+
+      // Bottom: show when not at the very end (footer area)
+      const distanceFromBottom = docH - (scrollY + viewH);
+      if (distanceFromBottom > 120) {
+        scrollFadeBottom.classList.add('visible');
+      } else {
+        scrollFadeBottom.classList.remove('visible');
+      }
+    }
+
+    window.addEventListener('scroll', updateScrollFade, { passive: true });
+    updateScrollFade();
+
+    /* ===== Lightbox ===== */
+    const lightbox = document.getElementById('lightbox');
+    const lightboxImg = document.getElementById('lightbox-img');
+    const lightboxCounter = document.getElementById('lightbox-counter');
+    const lbSpinner = document.getElementById('lb-spinner');
+
+    function revokeLastUrl() {
+      if (lastObjectUrl) {
+        URL.revokeObjectURL(lastObjectUrl);
+        lastObjectUrl = null;
+      }
+    }
+
+    /**
+     * Show an image in the lightbox with crossfade.
+     * @param {string}  src         Image URL (path or object URL)
+     * @param {string}  counterText Bottom counter text
+     * @param {boolean} isObjectUrl True if src is from URL.createObjectURL
+     */
+    function showImage(src, counterText, isObjectUrl) {
+      if (isLightboxAnimating) return;
+
+      const hasImage = lightboxImg.src && lightboxImg.src !== location.href;
+
+      if (hasImage) {
+        // Crossfade: exit current → swap src → enter new
+        isLightboxAnimating = true;
+        lightboxImg.classList.remove('entering');
+        lightboxImg.classList.add('exiting');
+
+        setTimeout(() => {
+          lightboxImg.classList.remove('exiting');
+          revokeLastUrl();
+          if (isObjectUrl) lastObjectUrl = src;
+
+          lbSpinner.classList.add('active');
+          lightboxImg.src = src;
+          lightboxCounter.textContent = counterText;
+
+          lightboxImg.onload = () => {
+            lbSpinner.classList.remove('active');
+            lightboxImg.classList.add('entering');
+            setTimeout(() => {
+              lightboxImg.classList.remove('entering');
+              isLightboxAnimating = false;
+            }, 350);
+          };
+        }, 200);
+      } else {
+        // First image: no crossfade, just fade in
+        revokeLastUrl();
+        if (isObjectUrl) lastObjectUrl = src;
+
+        lbSpinner.classList.add('active');
+        lightboxImg.src = src;
+        lightboxCounter.textContent = counterText;
+
+        lightboxImg.onload = () => {
+          lbSpinner.classList.remove('active');
+          lightboxImg.classList.add('entering');
+          setTimeout(() => lightboxImg.classList.remove('entering'), 350);
+        };
+      }
+    }
+
+    function openLightbox(index) {
+      isRandomMode = false;
+      currentIndex = index;
+      lightbox.classList.add('active');
+      document.body.style.overflow = 'hidden';
+      showImage(`/imgs/${index + 1}.webp`, `${index + 1} / ${TOTAL_IMAGES}`, false);
+    }
+
+    function closeLightbox() {
+      if (isLightboxAnimating) return;
+      lightbox.classList.remove('active');
+      document.body.style.overflow = '';
+      setTimeout(revokeLastUrl, 400);
+    }
+
+    function navigateLightbox(dir) {
+      if (isLightboxAnimating) return;
+      if (isRandomMode) {
+        fetchRandom();
+        return;
+      }
+      currentIndex = (currentIndex + dir + TOTAL_IMAGES) % TOTAL_IMAGES;
+      showImage(`/imgs/${currentIndex + 1}.webp`, `${currentIndex + 1} / ${TOTAL_IMAGES}`, false);
+    }
+
+    /* ===== Random Image API ===== */
+    async function fetchRandom() {
+      const randomBtn = document.getElementById('random-btn');
+      randomBtn.style.pointerEvents = 'none';
+      randomBtn.style.opacity = '0.6';
+
+      try {
+        const res = await fetch('/');
+        if (!res.ok) throw new Error('Failed');
+        const blob = await res.blob();
+        const url = URL.createObjectURL(blob);
+        isRandomMode = true;
+        lightbox.classList.add('active');
+        document.body.style.overflow = 'hidden';
+        showImage(url, '🎲 随机', true);
+      } catch (e) {
+        showToast('获取随机图片失败，请稍后再试');
+      } finally {
+        randomBtn.style.pointerEvents = '';
+        randomBtn.style.opacity = '';
+      }
+    }
+
+    /* ===== Event Listeners ===== */
+    document.getElementById('random-btn').addEventListener('click', fetchRandom);
+    document.getElementById('lb-close').addEventListener('click', closeLightbox);
+    document.getElementById('lb-prev').addEventListener('click', () => navigateLightbox(-1));
+    document.getElementById('lb-next').addEventListener('click', () => navigateLightbox(1));
+
+    // Close on overlay background click
+    lightbox.addEventListener('click', (e) => {
+      if (e.target === lightbox) closeLightbox();
+    });
+
+    // Keyboard navigation
+    document.addEventListener('keydown', (e) => {
+      if (!lightbox.classList.contains('active')) return;
+      if (e.key === 'Escape') closeLightbox();
+      if (e.key === 'ArrowLeft') navigateLightbox(-1);
+      if (e.key === 'ArrowRight') navigateLightbox(1);
+    });
+
+    /* ===== Touch / Swipe Support ===== */
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+
+    lightbox.addEventListener('touchstart', (e) => {
+      touchStartX = e.changedTouches[0].clientX;
+      touchStartY = e.changedTouches[0].clientY;
+      touchStartTime = Date.now();
+    }, { passive: true });
+
+    lightbox.addEventListener('touchend', (e) => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      const dy = e.changedTouches[0].clientY - touchStartY;
+      const dt = Date.now() - touchStartTime;
+
+      // Horizontal swipe: min 50px, max 500ms, more horizontal than vertical
+      if (Math.abs(dx) > Math.abs(dy) && Math.abs(dx) > 50 && dt < 500) {
+        if (dx > 0) {
+          navigateLightbox(-1);
+        } else {
+          navigateLightbox(1);
+        }
+      }
+    }, { passive: true });
+  </script>
+
+</body>
+</html>
