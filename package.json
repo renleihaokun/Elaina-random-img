@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "build": "node scripts/generate-manifest.js",
+    "thumbs": "python scripts/generate-thumbs.py",
     "dev": "wrangler pages dev ."
   }
 }

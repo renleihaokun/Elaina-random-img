@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="color-scheme" content="dark">
   <title>伊雷娜随机图</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     /* ===== Design Tokens ===== */
     :root {
@@ -29,8 +28,17 @@
 
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
+    html {
+      background: var(--bg);
+      /* 恒定滚动条槽位：画廊注入后页面变高时不再整页横向跳动 */
+      overflow-y: scroll;
+      scrollbar-gutter: stable;
+    }
+
     body {
-      font-family: 'Noto Sans SC', -apple-system, BlinkMacSystemFont, sans-serif;
+      /* 系统字体栈：不再依赖跨域 Google Fonts，首屏无需等待、也不会中途换字体 */
+      font-family: system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB',
+                   'Microsoft YaHei', 'Noto Sans CJK SC', 'Source Han Sans SC', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
@@ -95,6 +103,22 @@
     .header-content {
       position: relative;
       z-index: 1;
+    }
+
+    /* ---- Header Stagger Entrance（纯 CSS：首帧即开始淡入，不依赖 JS 时序） ---- */
+    .header-content > * {
+      opacity: 0;
+      animation: riseIn 0.6s var(--ease-out) forwards;
+    }
+
+    .header-content > .badge     { animation-delay: 0s; }
+    .header-content > h1         { animation-delay: 0.12s; }
+    .header-content > p          { animation-delay: 0.24s; }
+    .header-content > .btn-group { animation-delay: 0.36s; }
+
+    @keyframes riseIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: none; }
     }
 
     .badge {
@@ -243,6 +267,11 @@
       gap: 24px;
     }
 
+    /* 构建完成前先把页面撑高：页脚从首帧起就在折叠线以下，不再“坠落” */
+    .gallery:not(.built) {
+      min-height: 100vh;
+    }
+
     /* ---- Card Cell (grid cell — size never changes) ---- */
     .card-cell {
       position: relative;
@@ -262,10 +291,16 @@
       background-size: cover;
       background-position: bottom;
       filter: blur(20px);
-      opacity: 0.55;
       z-index: -1;
       pointer-events: none;
-      transition: transform 0.4s var(--ease-out), opacity 0.4s ease;
+      /* 与照片、卡片共用同一个 --fade-delay 一起淡入，不再抢先蹦出来 */
+      opacity: 0;
+      transition: opacity 0.6s ease var(--fade-delay, 0s),
+                  transform 0.4s var(--ease-out);
+    }
+
+    .card-cell.visible .image-glow {
+      opacity: 0.55;
     }
 
     .card-cell:hover .image-glow {
@@ -294,13 +329,16 @@
       );
       background-size: 300% 100%;
       animation: shimmer 2s ease-in-out infinite;
-      /* 3D */
+      /* 3D —— 不常驻 will-change：57 个常驻合成层会把 GPU 拖垮，只在 hover 时提升 */
       transform-style: preserve-3d;
-      will-change: transform;
       /* Default random sizing (overwritten by JS) */
       --card-scale: 1;
       --card-rotate: 0deg;
       transform: scale(var(--card-scale)) rotate(var(--card-rotate));
+    }
+
+    .card-cell:hover .gallery-item {
+      will-change: transform;
     }
 
     @keyframes shimmer {
@@ -325,10 +363,12 @@
       width: 100%;
       display: block;
       opacity: 0;
-      transition: opacity 0.5s ease, transform 0.5s var(--ease-out);
+      transition: opacity 0.55s ease var(--fade-delay, 0s),
+                  transform 0.55s var(--ease-out) var(--fade-delay, 0s);
     }
 
-    .gallery-item.loaded .img-wrap img {
+    /* 照片与卡片同一时机淡入（.loaded 只负责停掉 shimmer） */
+    .card-cell.visible .img-wrap img {
       opacity: 1;
     }
 
@@ -378,18 +418,18 @@
       filter: drop-shadow(0 2px 6px rgba(0,0,0,0.4));
     }
 
-    /* ---- Staggered Random Fade-in ---- */
+    /* ---- Staggered Fade-in（由 JS 在「图片已解码 + 已进入视口」时触发） ---- */
     .card-cell.reveal {
       opacity: 0;
-      transform: translateY(24px);
+      transform: translateY(18px);
     }
 
     .card-cell.reveal.visible {
       opacity: 1;
-      transform: translateY(0);
-      /* transition-delay is set by JS per card for random stagger */
-      transition: opacity 0.5s ease var(--fade-delay, 0s),
-                  transform 0.5s var(--ease-out) var(--fade-delay, 0s);
+      transform: none;
+      /* --fade-delay 由 JS 在淡入前写入，用于轻微错峰 */
+      transition: opacity 0.55s ease var(--fade-delay, 0s),
+                  transform 0.55s var(--ease-out) var(--fade-delay, 0s);
     }
 
     /* ===== Lightbox ===== */
@@ -629,6 +669,36 @@
       mask-image: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0) 100%);
     }
 
+    /* ===== Reduced Motion ===== */
+    @media (prefers-reduced-motion: reduce) {
+      .header-content > * {
+        animation: none;
+        opacity: 1;
+        transform: none;
+      }
+
+      .card-cell.reveal {
+        opacity: 1;
+        transform: none;
+      }
+
+      .card-cell .img-wrap img,
+      .card-cell.visible .img-wrap img {
+        opacity: 1;
+        transition: none;
+      }
+
+      .image-glow,
+      .card-cell.visible .image-glow {
+        opacity: 0.55;
+        transition: none;
+      }
+
+      .gallery-item {
+        animation: none;
+      }
+    }
+
     /* ===== Responsive ===== */
     @media (max-width: 1024px) {
       .gallery {
@@ -734,7 +804,14 @@
        Core logic — unchanged business rules, enhanced UI effects
        ============================================================ */
 
-    const TOTAL_IMAGES = 57;
+    const TOTAL_IMAGES_FALLBACK = 57;
+    const THUMB_DIR = '/imgs/thumb/';
+    const ORIG_DIR = '/imgs/';
+
+    /* 画廊数量与清单：启动时由 /imgs/thumb/manifest.json 刷新，
+       读取失败则退回内置的 57 张原图（页面照常可用，只是没有缩略图优化） */
+    let TOTAL_IMAGES = TOTAL_IMAGES_FALLBACK;
+    let GALLERY = { base: ORIG_DIR, count: TOTAL_IMAGES_FALLBACK, items: [] };
 
     let currentIndex = 0;
     let isRandomMode = false;
@@ -755,35 +832,108 @@
 
     /* ===== Gallery Construction ===== */
     const gallery = document.getElementById('gallery');
-    const sealTemplate = document.getElementById('seal-template');
-    const fragment = document.createDocumentFragment();
 
-    // Fisher-Yates shuffle: randomize card order on every page load
-    const imageOrder = Array.from({ length: TOTAL_IMAGES }, (_, i) => i + 1);
-    for (let j = imageOrder.length - 1; j > 0; j--) {
-      const k = Math.floor(Math.random() * (j + 1));
-      [imageOrder[j], imageOrder[k]] = [imageOrder[k], imageOrder[j]];
+    /**
+     * 读取缩略图清单。
+     * @returns {Promise<{base:string,count:number,items:Array<{name:string,ar:number}>}>}
+     */
+    async function loadGalleryItems() {
+      const fallbackItems = Array.from({ length: TOTAL_IMAGES_FALLBACK }, (_, i) => ({
+        name: String(i + 1),
+        ar: 16 / 9
+      }));
+      const fallback = { base: ORIG_DIR, count: fallbackItems.length, items: fallbackItems };
+
+      try {
+        const res = await fetch(`${THUMB_DIR}manifest.json`, { cache: 'no-cache' });
+        if (!res.ok) return fallback;
+
+        const data = await res.json();
+        if (!data || !Array.isArray(data.images) || data.images.length === 0) return fallback;
+
+        const items = data.images.map((raw) => {
+          const name = String(raw && raw.name != null ? raw.name : raw);
+          const w = raw ? Number(raw.w) : 0;
+          const h = raw ? Number(raw.h) : 0;
+          return { name, ar: (w > 0 && h > 0) ? (w / h) : (16 / 9) };
+        });
+
+        return { base: THUMB_DIR, count: items.length, items };
+      } catch (err) {
+        return fallback;
+      }
     }
-    gallery.dataset.order = imageOrder.join(',');
 
-    for (let idx = 0; idx < imageOrder.length; idx++) {
-      const i = imageOrder[idx]; // shuffled image number (1-based)
-      const imgSrc = `/imgs/${i}.webp`;
+    const requestIdle = window.requestIdleCallback
+      ? (fn) => window.requestIdleCallback(fn, { timeout: 1000 })
+      : (fn) => setTimeout(fn, 200);
+
+    /* ===== Magic Seal：延迟到卡片淡入后的空闲时间再克隆，避开关键路径 ===== */
+    function buildSeal(cell) {
+      const item = cell.querySelector('.gallery-item');
+      if (!item || item.querySelector('.card-seal')) return;
+
+      const seal = document.createElement('div');
+      seal.className = 'card-seal';
+      const sealSvg = document.getElementById('seal-template').cloneNode(true);
+      sealSvg.removeAttribute('id');
+      sealSvg.style.display = '';
+      seal.appendChild(sealSvg);
+      item.appendChild(seal);
+    }
+
+    /* ===== 淡入编排：图片「已解码」且卡片「已进入视口」时才淡入 ===== */
+    function maybeReveal(cell) {
+      if (cell.__revealed || !cell.__ready || !cell.dataset.inview) return;
+      cell.__revealed = true;
+
+      // 图片到达本身就天然错峰，这里只加一点随机抖动
+      cell.style.setProperty('--fade-delay', (Math.random() * 0.12).toFixed(2) + 's');
+
+      const item = cell.querySelector('.gallery-item');
+      cell.classList.add('visible');           // 卡片 + 照片 + 光晕 同步淡入
+      if (item) item.classList.add('loaded');  // 停掉 shimmer 骨架
+      requestIdle(() => buildSeal(cell));
+    }
+
+    function markReady(cell) {
+      if (cell.__ready) return;
+      cell.__ready = true;
+      maybeReveal(cell);
+    }
+
+    const revealObserver = new IntersectionObserver((entries) => {
+      for (const entry of entries) {
+        if (!entry.isIntersecting) continue;
+        const cell = entry.target;
+        cell.dataset.inview = '1';
+        revealObserver.unobserve(cell);
+        maybeReveal(cell);
+      }
+    }, {
+      threshold: 0.01,
+      rootMargin: '200px 0px'
+    });
+
+    /* ===== 单张卡片 ===== */
+    function createCard(entry, idx) {
+      const name = entry.name;
+      const num = Number(name) || (idx + 1);
+      const thumbSrc = `${GALLERY.base}${name}.webp`;
+      const origSrc = `${ORIG_DIR}${name}.webp`;
 
       // Grid cell — fixed size, never scales
       const cell = document.createElement('div');
       cell.className = 'card-cell reveal';
-
-      // Random stagger delay: 0~500ms, set BEFORE any class changes
-      const stagger = Math.random() * 0.5;
-      cell.style.setProperty('--fade-delay', `${stagger.toFixed(2)}s`);
+      cell.dataset.name = name;
+      cell.dataset.index = String(idx);
 
       // Main card
       const item = document.createElement('div');
       item.className = 'gallery-item';
 
       // Apply random scale + rotation (default to 'middle', refined after layout)
-      const { scale, rotate } = cardRandomness(i, 'middle');
+      const { scale, rotate } = cardRandomness(num, 'middle');
       item.dataset.scale = scale;
       item.dataset.rotate = rotate;
       item.style.setProperty('--card-scale', scale);
@@ -792,55 +942,63 @@
 
       const imgWrap = document.createElement('div');
       imgWrap.className = 'img-wrap';
+      // 关键：用真实宽高比占位，图片到达时行高不再突变
+      imgWrap.style.aspectRatio = String(entry.ar);
 
       const img = document.createElement('img');
-      img.alt = `伊雷娜 #${i}`;
+      img.alt = `伊雷娜 #${name}`;
       img.decoding = 'async';
+      if (idx < 6) {
+        img.loading = 'eager';                    // 首屏 6 张优先
+        if (idx < 3) img.fetchPriority = 'high';
+      } else {
+        img.loading = 'lazy';                     // 其余懒加载，避免一次性涌出
+      }
 
-      // Ambient image glow: same image as background, blurred, positioned at bottom
+      // Ambient image glow：缩略图作背景，与照片共用淡入时机
       const glow = document.createElement('div');
       glow.className = 'image-glow';
-      glow.style.backgroundImage = `url(${imgSrc})`;
+      glow.style.backgroundImage = `url(${thumbSrc})`;
 
-      // Reveal image: force reflow to ensure opacity:0 is committed first
-      function revealImage() {
-        void item.offsetHeight; // force reflow
-        item.classList.add('loaded');
+      let settled = false;
+
+      function onReady() {
+        if (settled) return;
+        settled = true;
+        const done = () => markReady(cell);
+        // decode()：确认拿到可绘制的解码帧后再淡入，避免淡入过程掉帧
+        if (typeof img.decode === 'function') img.decode().then(done, done);
+        else done();
       }
 
-      // Attach listener BEFORE setting src (handles network images)
-      let loaded = false;
-      img.addEventListener('load', function onLoad() {
-        if (loaded) return;
-        loaded = true;
-        img.removeEventListener('load', onLoad);
-        revealImage();
-      });
-
-      // Set src — triggers load (cached: sync, network: async)
-      img.src = imgSrc;
-
-      // Cached fast path: if already complete, onload may have fired sync
-      // or may not fire at all. Handle both cases.
-      if (img.complete && !loaded) {
-        loaded = true;
-        requestAnimationFrame(revealImage);
+      function onError() {
+        if (settled) return;
+        // 缩略图缺失/损坏 → 退回原图重试一次
+        if (img.dataset.fallback !== '1') {
+          img.dataset.fallback = '1';
+          glow.style.backgroundImage = `url(${origSrc})`;
+          img.src = origSrc;
+          return;
+        }
+        settled = true;
+        cell.classList.add('failed');
+        markReady(cell);  // 仍淡入骨架，不留空洞
       }
+
+      // Attach listeners BEFORE setting src (handles network images)
+      img.addEventListener('load', onReady);
+      img.addEventListener('error', onError);
+      img.src = thumbSrc;
+
+      // 缓存命中的快路径：load 可能已经错过
+      if (img.complete && img.naturalWidth > 0) onReady();
+
+      // 兜底：无论如何都淡入，绝不让视口内的卡片永久隐身
+      setTimeout(() => markReady(cell), 8000);
 
       imgWrap.appendChild(img);
       item.appendChild(imgWrap);
-
-      // Magic seal stamp
-      const seal = document.createElement('div');
-      seal.className = 'card-seal';
-      const sealSvg = sealTemplate.cloneNode(true);
-      sealSvg.removeAttribute('id');
-      sealSvg.style.display = '';
-      seal.appendChild(sealSvg);
-
-      // Assemble
       item.appendChild(glow);
-      item.appendChild(seal);
       cell.appendChild(item);
 
       // 3D tilt on mouse move — combines with the random base scale/rotate
@@ -866,96 +1024,66 @@
         item.style.borderColor = '';
       });
 
-      cell.addEventListener('click', () => openLightbox(i - 1));
+      cell.addEventListener('click', () => openLightbox(num));
 
-      fragment.appendChild(cell);
+      return cell;
     }
 
-    gallery.appendChild(fragment);
+    /* ===== 构建画廊 ===== */
+    (async function initGallery() {
+      GALLERY = await loadGalleryItems();
+      TOTAL_IMAGES = GALLERY.count;
 
-    /* ===== Edge Tilt Tuning: detect columns and refine rotation ===== */
+      // Fisher-Yates shuffle: randomize card order on every page load
+      const order = GALLERY.items.slice();
+      for (let j = order.length - 1; j > 0; j--) {
+        const k = Math.floor(Math.random() * (j + 1));
+        [order[j], order[k]] = [order[k], order[j]];
+      }
+
+      const fragment = document.createDocumentFragment();
+      order.forEach((entry, idx) => fragment.appendChild(createCard(entry, idx)));
+      gallery.appendChild(fragment);
+      gallery.classList.add('built');  // 撤掉占位高度
+
+      applyEdgeTilt();  // 同步执行：首帧即最终姿态，避免上屏后再变一次
+
+      gallery.querySelectorAll('.card-cell.reveal').forEach((cell) => {
+        revealObserver.observe(cell);
+      });
+    })();
+
+    /* ===== Edge Tilt Tuning: 一次读列数，按列位置修正旋转 ===== */
     function applyEdgeTilt() {
       const cells = gallery.querySelectorAll('.card-cell');
       if (cells.length === 0) return;
 
-      // Detect column count by comparing first-row card top positions
-      const firstTop = cells[0].getBoundingClientRect().top;
-      let colCount = 0;
-      for (let c = 0; c < cells.length; c++) {
-        if (Math.abs(cells[c].getBoundingClientRect().top - firstTop) < 2) {
-          colCount++;
-        } else {
-          break;
-        }
-      }
-      if (colCount < 2) colCount = 2; // safety
+      // 一次 getComputedStyle 就能拿到列数，不再逐张 getBoundingClientRect（57 次强制布局）
+      let colCount = getComputedStyle(gallery).gridTemplateColumns.split(/\s+/).filter(Boolean).length;
+      if (!colCount || colCount < 2) colCount = 2; // safety
+      if (colCount > cells.length) colCount = cells.length;
 
-      // Read shuffled order from data attribute
-      const order = (gallery.dataset.order || '').split(',').map(Number);
-
-      for (let c = 0; c < cells.length; c++) {
+      cells.forEach((cell, c) => {
         const col = c % colCount;
         const isEdge = (col === 0 || col === colCount - 1);
-        const item = cells[c].querySelector('.gallery-item');
-        const imgNum = order[c] || (c + 1); // shuffled image number
+        const item = cell.querySelector('.gallery-item');
+        if (!item) return;
+
+        const imgNum = Number(cell.dataset.name) || (c + 1);
         const { scale, rotate } = cardRandomness(imgNum, isEdge ? 'edge' : 'middle');
         item.dataset.scale = scale;
         item.dataset.rotate = rotate;
         item.style.setProperty('--card-scale', scale);
         item.style.setProperty('--card-rotate', rotate + 'deg');
         item.style.transform = `scale(${scale}) rotate(${rotate}deg)`;
-      }
+      });
     }
 
-    // Run after layout settles, and on resize
-    requestAnimationFrame(() => requestAnimationFrame(applyEdgeTilt));
     let resizeTimer;
     window.addEventListener('resize', () => {
       clearTimeout(resizeTimer);
       resizeTimer = setTimeout(applyEdgeTilt, 200);
     });
-
-    /* ===== Scroll Reveal (IntersectionObserver) ===== */
-    const revealObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          const el = entry.target;
-          // Force reflow so the browser commits opacity:0 before transitioning
-          void el.offsetHeight;
-          el.classList.add('visible');
-          revealObserver.unobserve(el);
-        }
-      });
-    }, {
-      threshold: 0.06,
-      rootMargin: '0px 0px -40px 0px'
-    });
-
-    gallery.querySelectorAll('.card-cell.reveal').forEach((item) => {
-      revealObserver.observe(item);
-    });
-
-    /* ===== Header Stagger Entrance ===== */
-    (function animateHeaderEntrance() {
-      const els = [
-        document.querySelector('.badge'),
-        document.querySelector('.header h1'),
-        document.querySelector('.header p'),
-        document.querySelector('.btn-group')
-      ];
-      els.forEach((el, i) => {
-        if (!el) return;
-        el.style.opacity = '0';
-        el.style.transform = 'translateY(20px)';
-        el.style.transition = `opacity 0.6s ease ${i * 120}ms, transform 0.6s cubic-bezier(0.4, 0, 0.2, 1) ${i * 120}ms`;
-        requestAnimationFrame(() => {
-          requestAnimationFrame(() => {
-            el.style.opacity = '1';
-            el.style.transform = 'translateY(0)';
-          });
-        });
-      });
-    })();
 
     /* ===== Toast ===== */
     const toastEl = document.getElementById('toast');
@@ -1061,12 +1189,16 @@
       }
     }
 
-    function openLightbox(index) {
+    /**
+     * 打开灯箱：仍按「图片编号」导航（与改动前一致）。
+     * @param {number} num 图片编号（清单里的 name，当前为 1..N）
+     */
+    function openLightbox(num) {
       isRandomMode = false;
-      currentIndex = index;
+      currentIndex = (num - 1 + TOTAL_IMAGES) % TOTAL_IMAGES;
       lightbox.classList.add('active');
       document.body.style.overflow = 'hidden';
-      showImage(`/imgs/${index + 1}.webp`, `${index + 1} / ${TOTAL_IMAGES}`, false);
+      showImage(`${ORIG_DIR}${num}.webp`, `${num} / ${TOTAL_IMAGES}`, false);
     }
 
     function closeLightbox() {
@@ -1083,7 +1215,7 @@
         return;
       }
       currentIndex = (currentIndex + dir + TOTAL_IMAGES) % TOTAL_IMAGES;
-      showImage(`/imgs/${currentIndex + 1}.webp`, `${currentIndex + 1} / ${TOTAL_IMAGES}`, false);
+      showImage(`${ORIG_DIR}${currentIndex + 1}.webp`, `${currentIndex + 1} / ${TOTAL_IMAGES}`, false);
     }
 
     /* ===== Random Image API ===== */
